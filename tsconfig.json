@@ -6,12 +6,18 @@
       "@/*": [
         "./*"
       ]
-    }
+    },
+    "jsx": "react-jsx"
   },
   "include": [
     "**/*.ts",
     "**/*.tsx",
+    "**/*.js",
+    "**/*.jsx",
     ".expo/types/**/*.ts",
-    "expo-env.d.ts"
+    "expo-env.d.ts",
+    "app/**/*.jsx",
+    "app/**/*.tsx",
+    "nativewind-env.d.ts"
   ]
 }
