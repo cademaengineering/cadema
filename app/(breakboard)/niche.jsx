@@ -1,4 +1,4 @@
-import AddScholarship from "@/components/Buttons/FloatingButtons/addScholarship";
+import AddScholarship from "@/components/Buttons/FloatingButtons/AddNiche";
 import NameBar from "@/components/Reusables/NameBar";
 import NicheCard from "@/components/Reusables/NicheCard";
 import TextContainer from "@/components/Reusables/TextContainer";

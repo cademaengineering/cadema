@@ -1,6 +1,6 @@
 import Fest from "@/assets/icons/fest.svg";
 import Summit from "@/assets/icons/summit.svg";
-import AddScholarship from "@/components/Buttons/FloatingButtons/addScholarship";
+import AddScholarship from "@/components/Buttons/FloatingButtons/AddEvent";
 import CoursesCategories from "@/components/Reusables/CoursesCategories";
 import EventCard from "@/components/Reusables/EventCard";
 import NameBar from "@/components/Reusables/NameBar";

@@ -12,10 +12,11 @@ const Mentors = () => {
     <View className="bg-[#F9FAFB] flex-1">
       <View className="pt-16 flex-1">
         <NameBar courses />
-        <View className="px-6">
+        <View className="px-6 pt-2">
           <TextHeader
-            content="Find Your Mentor"
+            content="Connect with industry experts"
             textStyles="text-[14px] text-[#000000]"
+            customLineHeight={20}
           />
           <TextContainer
             content="Connect with industry experts, advisors, and sponsors in your field"

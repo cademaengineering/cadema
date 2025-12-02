@@ -1,4 +1,4 @@
-import AddScholarship from "@/components/Buttons/FloatingButtons/addScholarship";
+import AddScholarship from "@/components/Buttons/FloatingButtons/AddParty";
 import AllEventCard from "@/components/Reusables/AllEventCard";
 import NameBar from "@/components/Reusables/NameBar";
 import EventCard from "@/components/Reusables/PartyCard";

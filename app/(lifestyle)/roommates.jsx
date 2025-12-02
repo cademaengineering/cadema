@@ -1,4 +1,4 @@
-import AddScholarship from "@/components/Buttons/FloatingButtons/addScholarship";
+import AddScholarship from "@/components/Buttons/FloatingButtons/AddRoommate";
 import NameBar from "@/components/Reusables/NameBar";
 import RoomatesCard from "@/components/Reusables/RoomatesCard";
 import TextHeader from "@/components/Reusables/TextHeader";
