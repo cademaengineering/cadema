@@ -1,12 +1,35 @@
-import React, { useState } from "react";
-import { View, FlatList, TouchableOpacity } from "react-native";
-import FeedCategoriesCard from "../Reusables/FeedCategoriesCard";
 import CategoryAdd from "@/assets/icons/category-add.svg";
+import { getUserCommunities } from "@/lib/supabaseServices";
 import { useRouter } from "expo-router";
+import { useEffect, useState } from "react";
+import { FlatList, TouchableOpacity, View } from "react-native";
+import FeedCategoriesCard from "../Reusables/FeedCategoriesCard";
 
-const FeedCategories = () => {
-  const [selectedCategory, setSelectedCategory] = useState("0");
+const FeedCategories = ({ onCategoryChange, selectedCategoryId }) => {
+  const [selectedCategory, setSelectedCategory] = useState(
+    selectedCategoryId || "0"
+  );
+  const [userCommunities, setUserCommunities] = useState([]);
   const router = useRouter();
+
+  useEffect(() => {
+    loadUserCommunities();
+  }, []);
+
+  useEffect(() => {
+    if (selectedCategoryId) {
+      setSelectedCategory(selectedCategoryId);
+    }
+  }, [selectedCategoryId]);
+
+  const loadUserCommunities = async () => {
+    try {
+      const data = await getUserCommunities();
+      setUserCommunities(data || []);
+    } catch (error) {
+      console.error("Error loading user communities:", error);
+    }
+  };
 
   // Default "All" category
   const allCategory = {
@@ -16,21 +39,12 @@ const FeedCategories = () => {
     isActive: true,
   };
 
-  // Sample data for categories - replace with your actual data
-  const categoriesData = [
-    {
-      id: "1",
-      title: "School feeds",
-      imageUrl:
-        "https://res.cloudinary.com/dtxr92piy/image/upload/v1761860766/use_i5jqsi.png",
-      isActive: false,
-    },
-  ];
-
   const renderCategoryItem = ({ item, index }) => (
     <FeedCategoriesCard
       category={{
-        ...item,
+        id: item.id,
+        title: item.name,
+        imageUrl: item.image_url,
         isActive: item.id === selectedCategory,
       }}
       onPress={() => handleCategoryPress(item)}
@@ -40,19 +54,20 @@ const FeedCategories = () => {
 
   const handleCategoryPress = (category) => {
     setSelectedCategory(category.id);
-    console.log("Selected category:", category.title);
-    // Add your category selection logic here
+    if (onCategoryChange) {
+      onCategoryChange(category.id);
+    }
   };
 
   const handleAllCategoryPress = () => {
     setSelectedCategory("0");
-    console.log("Selected: All Feeds");
+    if (onCategoryChange) {
+      onCategoryChange("0");
+    }
   };
 
   const handleAddCategory = () => {
-    console.log("Add new category");
-    router.push("/communities/addCommunity");
-    // Add your add category logic here
+    router.push("/communities/categories");
   };
 
   return (
@@ -71,7 +86,7 @@ const FeedCategories = () => {
         {/* Scrollable Categories */}
         <View className="flex-1">
           <FlatList
-            data={categoriesData}
+            data={userCommunities}
             renderItem={renderCategoryItem}
             keyExtractor={(item) => item.id}
             horizontal

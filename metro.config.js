@@ -7,6 +7,12 @@ const { transformer, resolver } = config;
 config.transformer = {
   ...transformer,
   babelTransformerPath: require.resolve("react-native-svg-transformer"),
+  getTransformOptions: async () => ({
+    transform: {
+      experimentalImportSupport: false,
+      inlineRequires: true,
+    },
+  }),
 };
 
 config.resolver = {

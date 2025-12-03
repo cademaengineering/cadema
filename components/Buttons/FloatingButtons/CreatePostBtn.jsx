@@ -1,12 +1,16 @@
-import React from "react";
-import { TouchableOpacity } from "react-native";
 import PlusIcon from "@/assets/icons/plus.svg";
 import { useRouter } from "expo-router";
-const CreatePostBtn = () => {
+import { TouchableOpacity } from "react-native";
+
+const CreatePostBtn = ({ communityId }) => {
   const router = useRouter();
 
   const handlePress = () => {
-    router.push("/post/addPost");
+    if (communityId) {
+      router.push(`/post/addPost?communityId=${communityId}`);
+    } else {
+      router.push("/post/addPost");
+    }
   };
 
   return (

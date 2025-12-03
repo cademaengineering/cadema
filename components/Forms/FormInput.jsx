@@ -1,7 +1,7 @@
-import React, { useState } from "react";
-import { View, TextInput, TouchableOpacity } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
 import TextContainer from "@/components/Reusables/TextContainer";
+import { Ionicons } from "@expo/vector-icons";
+import { useState } from "react";
+import { TextInput, TouchableOpacity, View } from "react-native";
 
 const FormInput = ({
   label,
@@ -16,6 +16,7 @@ const FormInput = ({
   multiline = false,
   numberOfLines = 1,
   maxLength,
+  dynamicHeight,
   onFocus,
   onBlur,
   error,
@@ -92,7 +93,7 @@ const FormInput = ({
           onFocus={handleFocus}
           onBlur={handleBlur}
           className={`
-            w-full h-[50px] px-4 rounded-[10px] border
+            w-full h-[50px] ${dynamicHeight} px-4 rounded-[10px] border
             ${getBorderColor()}
             ${multiline ? "py-3 text-top" : "py-3"}
             ${!editable ? "bg-gray-100 text-gray-500" : ""}

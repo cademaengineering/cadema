@@ -1,22 +1,58 @@
-import React, { useState } from "react";
-import {
-  View,
-  TouchableOpacity,
-  Image,
-  KeyboardAvoidingView,
-  TouchableWithoutFeedback,
-  Platform,
-  Keyboard,
-  TextInput,
-} from "react-native";
-import * as ImagePicker from "expo-image-picker";
-import PostTitlebar from "@/components/Reusables/PostTitlebar";
-import GalleryIcon from "@/assets/icons/gallery.svg";
 import Cancel from "@/assets/icons/cancel.svg";
+import GalleryIcon from "@/assets/icons/gallery.svg";
+import PostTitlebar from "@/components/Reusables/PostTitlebar";
+import { useCloudinary } from "@/hooks/useCloudinary";
+import { supabase } from "@/lib/supabase";
+import { createPost } from "@/lib/supabaseServices";
+import * as ImagePicker from "expo-image-picker";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import { useEffect, useState } from "react";
+import {
+  ActivityIndicator,
+  Alert,
+  Image,
+  Keyboard,
+  KeyboardAvoidingView,
+  Platform,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  TouchableWithoutFeedback,
+  View,
+} from "react-native";
 
 const AddPost = () => {
+  const router = useRouter();
+  const { communityId } = useLocalSearchParams();
+  const { uploadToCloudinary, uploading } = useCloudinary();
+
   const [text, setText] = useState("");
   const [selectedImage, setSelectedImage] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [communityName, setCommunityName] = useState("Everyone");
+
+  useEffect(() => {
+    if (communityId) {
+      loadCommunity();
+    }
+  }, [communityId]);
+
+  const loadCommunity = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("communities")
+        .select("name")
+        .eq("id", communityId)
+        .single();
+
+      if (error) throw error;
+      if (data) {
+        setCommunityName(data.name);
+      }
+    } catch (error) {
+      console.error("Error loading community:", error);
+    }
+  };
 
   const pickImageFromGallery = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
@@ -30,6 +66,58 @@ const AddPost = () => {
     }
   };
 
+  const handlePost = async () => {
+    if (!text.trim() && !selectedImage) {
+      Alert.alert("Error", "Please add some content or an image");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      let imageUrl = null;
+
+      // Upload image to Cloudinary if selected
+      if (selectedImage) {
+        try {
+          const uploadResult = await uploadToCloudinary(
+            selectedImage,
+            "cadema/posts"
+          );
+          imageUrl = uploadResult.url;
+        } catch (uploadError) {
+          console.error("Image upload error:", uploadError);
+          Alert.alert("Error", "Failed to upload image. Please try again.");
+          setLoading(false);
+          return;
+        }
+      }
+
+      // Create post in Supabase
+      await createPost({
+        content: text.trim(),
+        imageUrl: imageUrl,
+        communityId: communityId || null,
+      });
+
+      Alert.alert("Success", "Post created successfully!", [
+        {
+          text: "OK",
+          onPress: () => {
+            // Navigate back to community feed
+            router.replace("/(tabs)/community");
+          },
+        },
+      ]);
+    } catch (error) {
+      console.error("Create post error:", error);
+      Alert.alert("Error", error.message || "Failed to create post");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const isProcessing = loading || uploading;
+
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -39,7 +127,12 @@ const AddPost = () => {
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <View className="pt-16 flex-1">
           <View className="px-6 pb-6">
-            <PostTitlebar title="Everyone" action />
+            <PostTitlebar
+              title={communityName}
+              action
+              onPost={handlePost}
+              loading={isProcessing}
+            />
           </View>
           <View className="bg-white border border-[#F2F2F2] flex-1 p-6">
             {/* Full TextArea */}
@@ -55,6 +148,7 @@ const AddPost = () => {
                 fontFamily: "Abeatbykai",
               }}
               placeholderTextColor="#ADADAD"
+              editable={!isProcessing}
             />
             {/* Show selected image preview */}
             {selectedImage && (
@@ -63,6 +157,7 @@ const AddPost = () => {
                   <TouchableOpacity
                     className="p-3 w-[40px] h-[40px] justify-center items-center rounded-full bg-[#0303031F]"
                     onPress={() => setSelectedImage(null)} // Remove image on click
+                    disabled={isProcessing}
                   >
                     <Cancel width={11} height={11} />
                   </TouchableOpacity>
@@ -79,9 +174,20 @@ const AddPost = () => {
               <TouchableOpacity
                 activeOpacity={0.7}
                 onPress={pickImageFromGallery}
+                disabled={isProcessing}
               >
                 <GalleryIcon width={28} height={28} />
               </TouchableOpacity>
+              {isProcessing && (
+                <View className="flex-row items-center gap-2">
+                  <ActivityIndicator size="small" color="#000E3A" />
+                  {uploading && (
+                    <Text className="text-[12px] text-[#ADADAD]">
+                      Uploading image...
+                    </Text>
+                  )}
+                </View>
+              )}
             </View>
           </View>
         </View>

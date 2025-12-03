@@ -1,46 +1,81 @@
-import React, { useState } from "react";
-import {
-  View,
-  Alert,
-  ActivityIndicator,
-  KeyboardAvoidingView,
-  ScrollView,
-  Platform,
-  TouchableWithoutFeedback,
-  Keyboard,
-  TouchableOpacity,
-} from "react-native";
-import { StatusBar } from "expo-status-bar";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
-// import Logo from "@/assets/icons/logo.svg";
-import Line from "@/assets/icons/line.svg";
-import AppleIcon from "@/assets/icons/apple-icon.svg";
-import GoogleIcon from "@/assets/icons/google-icon.svg";
-import FacebookIcon from "@/assets/icons/facebook-icon.svg";
+import Logo from "@/assets/icons/logo.svg";
 import AppButton from "@/components/Buttons/AppButton";
-import { Link, useRouter } from "expo-router";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import FormInput from "@/components/Forms/FormInput";
 import TextContainer from "@/components/Reusables/TextContainer";
 import TextHeader from "@/components/Reusables/TextHeader";
-import FormInput from "@/components/Forms/FormInput";
-import Logo from "@/assets/icons/logo.svg";
+import {
+  registerForPushNotificationsAsync,
+  savePushToken,
+} from "@/lib/pushNotificationService";
+import { supabase } from "@/lib/supabase";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { Link, useRouter } from "expo-router";
+import { StatusBar } from "expo-status-bar";
+import { useState } from "react";
+import {
+  Alert,
+  Keyboard,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  TouchableOpacity,
+  TouchableWithoutFeedback,
+  View,
+} from "react-native";
 
 const Login = () => {
   const router = useRouter();
-  const goToHome = () => {
-    router.push("/(tabs)/community");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [rememberMe, setRememberMe] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  const toggleRememberMe = () => {
+    setRememberMe(!rememberMe);
+  };
+
+  const handleLogin = async () => {
+    if (!email || !password) {
+      Alert.alert("Error", "Please fill in all fields");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: email.trim(),
+        password: password,
+      });
+
+      if (error) throw error;
+
+      // Store remember me preference
+      if (rememberMe) {
+        await AsyncStorage.setItem("rememberMe", "true");
+        await AsyncStorage.setItem("userEmail", email);
+      } else {
+        await AsyncStorage.removeItem("rememberMe");
+        await AsyncStorage.removeItem("userEmail");
+      }
+
+      // After successful login, register for push notifications
+      const token = await registerForPushNotificationsAsync();
+      if (token) {
+        await savePushToken(token);
+      }
+
+      Alert.alert("Success", "Logged in successfully!");
+      router.replace("/(tabs)/community");
+    } catch (error) {
+      Alert.alert("Error", error.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const goToForgotPassword = () => {
     router.push("/(auth)/forgotPassword");
-  };
-  // Form state management
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [rememberMe, setRememberMe] = useState(false);
-
-  const toggleRememberMe = () => {
-    setRememberMe(!rememberMe);
   };
 
   return (
@@ -130,14 +165,14 @@ const Login = () => {
             </View>
           </ScrollView>
 
-          {/* Fixed bottom section */}
           <View className="absolute bottom-14 left-0 right-0 p-6 bg-[#000E3A]">
             <View>
               <AppButton
-                handlePress={goToHome}
-                btnLabel="Log in"
+                handlePress={handleLogin}
+                btnLabel={loading ? "Logging in..." : "Log in"}
                 moreStyles="bg-[#13E0A0]"
                 textStyles="text-[#000E3A] text-[14px]"
+                disabled={loading}
               />
             </View>
             <View className="flex-row justify-center items-center">

@@ -1,63 +1,70 @@
-import NameBar from "@/components/Reusables/NameBar";
 import AddProductBtn from "@/components/Buttons/FloatingButtons/AddProductBtn";
-import React, { useState } from "react";
-import { FlatList, View, RefreshControl } from "react-native";
 import Advertisement from "@/components/Reusables/Advertisement";
-import ShopCategories from "@/components/Reusables/ShopCategories";
+import NameBar from "@/components/Reusables/NameBar";
 import ProductCard from "@/components/Reusables/ProductCard";
-
-const products = [
-  {
-    id: "1",
-    name: "Steal like an...",
-    location: "New York, US",
-    price: "$100",
-    imageUrl:
-      "https://res.cloudinary.com/dtxr92piy/image/upload/v1762092943/product1_ehqv51.png",
-  },
-  {
-    id: "2",
-    name: "Steal like an...",
-    location: "New York, US",
-    price: "$100",
-    imageUrl:
-      "https://res.cloudinary.com/dtxr92piy/image/upload/v1762092943/product2_wssoff.png",
-  },
-  {
-    id: "3",
-    name: "Steal like an...",
-    location: "New York, US",
-    price: "$100",
-    imageUrl:
-      "https://res.cloudinary.com/dtxr92piy/image/upload/v1762092943/product3_kqwqcc.png",
-  },
-  {
-    id: "4",
-    name: "Steal like an...",
-    location: "New York, US",
-    price: "$100",
-    imageUrl:
-      "https://res.cloudinary.com/dtxr92piy/image/upload/v1762092943/Product7_bms3tp.png",
-  },
-  {
-    id: "5",
-    name: "Steal like an...",
-    location: "New York, US",
-    price: "$100",
-    imageUrl:
-      "https://res.cloudinary.com/dtxr92piy/image/upload/v1762092943/product4_s8utcg.png",
-  },
-  {
-    id: "6",
-    name: "Steal like an...",
-    location: "New York, US",
-    price: "$100",
-    imageUrl:
-      "https://res.cloudinary.com/dtxr92piy/image/upload/v1762092943/product6_jusaew.png",
-  },
-];
+import ShopCategories from "@/components/Reusables/ShopCategories";
+import { getAllProducts } from "@/lib/supabaseServices";
+import { useFocusEffect } from "expo-router";
+import { useCallback, useState } from "react";
+import {
+  ActivityIndicator,
+  FlatList,
+  RefreshControl,
+  Text,
+  View,
+} from "react-native";
 
 const Shop = () => {
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState("All");
+
+  useFocusEffect(
+    useCallback(() => {
+      loadProducts();
+    }, [selectedCategory])
+  );
+
+  const loadProducts = async () => {
+    try {
+      setLoading(true);
+      const data = await getAllProducts(selectedCategory);
+      setProducts(data || []);
+    } catch (error) {
+      console.error("Error loading products:", error);
+      setProducts([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await loadProducts();
+    setRefreshing(false);
+  };
+
+  const handleCategoryChange = (category) => {
+    setSelectedCategory(category);
+  };
+
+  if (loading) {
+    return (
+      <View className="bg-[#F9FAFB] flex-1">
+        <View className="pt-16 flex-1">
+          <NameBar shop />
+          <View className="flex-1 justify-center items-center">
+            <ActivityIndicator size="large" color="#000E3A" />
+            <Text className="mt-4 text-[#ADADAD] text-[14px]">
+              Loading products...
+            </Text>
+          </View>
+        </View>
+      </View>
+    );
+  }
+
   return (
     <View className="bg-[#F9FAFB] flex-1">
       <View className="pt-16 flex-1">
@@ -66,7 +73,10 @@ const Shop = () => {
           <Advertisement />
         </View>
         <View className="px-6">
-          <ShopCategories />
+          <ShopCategories
+            onCategoryChange={handleCategoryChange}
+            selectedCategory={selectedCategory}
+          />
         </View>
         <View className="px-6 flex-1">
           <FlatList
@@ -80,9 +90,24 @@ const Shop = () => {
             }}
             showsVerticalScrollIndicator={false}
             contentContainerStyle={{ paddingBottom: 80 }}
+            refreshControl={
+              <RefreshControl
+                refreshing={refreshing}
+                onRefresh={onRefresh}
+                colors={["#13E0A0"]}
+                tintColor="#13E0A0"
+              />
+            }
+            ListEmptyComponent={
+              <View className="flex-1 justify-center items-center py-20">
+                <Text className="text-[#ADADAD] text-[16px] text-center">
+                  No products yet.{"\n"}Be the first to list a product!
+                </Text>
+              </View>
+            }
           />
         </View>
-        {/* Floating Create Post Button */}
+        {/* Floating Add Product Button */}
         <View className="absolute right-6 bottom-8">
           <AddProductBtn />
         </View>

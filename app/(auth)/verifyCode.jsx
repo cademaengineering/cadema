@@ -1,24 +1,49 @@
-import React, { useState } from "react";
-import {
-  View,
-  KeyboardAvoidingView,
-  Platform,
-  TouchableOpacity,
-  ScrollView,
-} from "react-native";
-import TextHeader from "@/components/Reusables/TextHeader";
-import TextContainer from "@/components/Reusables/TextContainer";
-import BackButton from "@/components/Reusables/BackButton";
-import { useRouter } from "expo-router";
-import FormInput from "@/components/Forms/FormInput";
 import AppButton from "@/components/Buttons/AppButton";
+import FormInput from "@/components/Forms/FormInput";
+import BackButton from "@/components/Reusables/BackButton";
+import TextContainer from "@/components/Reusables/TextContainer";
+import TextHeader from "@/components/Reusables/TextHeader";
+import { supabase } from "@/lib/supabase";
+import { useRouter } from "expo-router";
+import { useState } from "react";
+import { Alert, KeyboardAvoidingView, Platform, View } from "react-native";
+
 const VerifyCode = () => {
   const router = useRouter();
-  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const goToSuccess = () => {
-    router.push("/(auth)/forgotPasswordSuccess");
+  const [loading, setLoading] = useState(false);
+
+  const handleChangePassword = async () => {
+    if (!password || !confirmPassword) {
+      Alert.alert("Error", "Please fill in all fields");
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      Alert.alert("Error", "Passwords do not match");
+      return;
+    }
+
+    if (password.length < 6) {
+      Alert.alert("Error", "Password must be at least 6 characters");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const { error } = await supabase.auth.updateUser({
+        password: password,
+      });
+
+      if (error) throw error;
+
+      router.push("/(auth)/forgotPasswordSuccess");
+    } catch (error) {
+      Alert.alert("Error", error.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -35,25 +60,14 @@ const VerifyCode = () => {
             <View className="pt-8">
               <TextHeader
                 textStyles="text-[24px] text-[#030303]"
-                content="Check your email"
+                content="Create new password"
               />
               <TextContainer
-                content="We’ve sent a 6-digit code to your email address sethcohen25@email.com, enter the code and create a new password. "
+                content="Enter your new password below."
                 textStyles="text-[12px] text-[#808080] mt-2"
               />
             </View>
-            <View className="mt-8 gap-10">
-              <FormInput
-                label="Enter code"
-                value={email}
-                onChangeText={setEmail}
-                placeholder=""
-                keyboardType="text"
-                autoCapitalize="none"
-                required
-                labelStyle="text-[#030303]"
-                inputStyle="border-[#030303] text-[#030303] bg-transparent"
-              />
+            <View className="mt-8 gap-6">
               <FormInput
                 label="Password"
                 value={password}
@@ -61,6 +75,8 @@ const VerifyCode = () => {
                 placeholder="Create password"
                 isPassword
                 required
+                labelStyle="text-[#030303]"
+                inputStyle="border-[#030303] text-[#030303] bg-transparent"
               />
               <FormInput
                 label="Confirm Password"
@@ -69,15 +85,17 @@ const VerifyCode = () => {
                 placeholder="Confirm password"
                 isPassword
                 required
+                labelStyle="text-[#030303]"
+                inputStyle="border-[#030303] text-[#030303] bg-transparent"
               />
             </View>
           </View>
-          {/* Button fixed at the bottom */}
           <View className="absolute left-0 right-0 bottom-20 px-6">
             <AppButton
-              btnLabel="Change password"
+              btnLabel={loading ? "Changing..." : "Change password"}
               textStyles="text-[#13E0A0]"
-              handlePress={goToSuccess}
+              handlePress={handleChangePassword}
+              disabled={loading}
             />
           </View>
         </View>

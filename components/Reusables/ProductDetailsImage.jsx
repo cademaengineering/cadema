@@ -1,17 +1,17 @@
-import React from "react";
-import { View, FlatList, Image } from "react-native";
+import { FlatList, Image, View } from "react-native";
 
-const ProductDetailsImage = () => {
-  const productImages = [
-    {
-      id: "1",
-      uri: "https://res.cloudinary.com/dtxr92piy/image/upload/v1762092943/product1_ehqv51.png",
-    },
-    {
-      id: "2",
-      uri: "https://res.cloudinary.com/dtxr92piy/image/upload/v1762092943/product1_ehqv51.png",
-    },
-  ];
+const ProductDetailsImage = ({ images = [] }) => {
+  // Use provided images or fallback to default
+  const productImages =
+    images.length > 0
+      ? images.map((url, index) => ({ id: String(index + 1), uri: url }))
+      : [
+          {
+            id: "1",
+            uri: "https://res.cloudinary.com/dtxr92piy/image/upload/v1762092943/product1_ehqv51.png",
+          },
+        ];
+
   return (
     <View className="h-[220px] bg-[#F9FAFB]">
       <FlatList

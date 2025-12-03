@@ -1,39 +1,44 @@
-import React, { useState } from "react";
-import { Image, TextInput, TouchableOpacity, View } from "react-native";
 import SendIcon from "@/assets/icons/send.svg";
+import {
+  ActivityIndicator,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
 
-const ChatInput = () => {
-  const [text, setText] = useState("");
-
+const ChatInput = ({
+  value,
+  onChangeText,
+  onSend,
+  loading,
+  placeholder = "Write a comment...",
+}) => {
   return (
-    <View className="flex-row justify-between items-center bg-[#000E3A] py-5 px-6">
-      <View>
-        <Image
-          source={require("@/assets/icons/avatar.png")}
-          width={32}
-          height={32}
-        />
-      </View>
-      <View className="flex-1 mx-3">
+    <View className="absolute bottom-0 left-0 right-0 bg-white border-t border-[#F2F2F2] px-6 py-4">
+      <View className="flex-row items-center gap-3">
         <TextInput
-          placeholder="Write a comment..."
-          value={text}
-          onChangeText={setText}
-          className="border border-[#F2F2F2] rounded-full px-4 py-2 text-[#ADADAD]"
-          multiline
-          numberOfLines={6}
-          style={{
-            fontFamily: "Abeatbykai",
-            fontSize: 14,
-            minHeight: 36,
-            textAlignVertical: "top",
-          }}
+          value={value}
+          onChangeText={onChangeText}
+          placeholder={placeholder}
           placeholderTextColor="#ADADAD"
+          className="flex-1 bg-[#F9FAFB] rounded-[8px] px-4 py-3 text-[14px]"
+          style={{ fontFamily: "Abeatbykai" }}
+          editable={!loading}
         />
+        <TouchableOpacity
+          onPress={onSend}
+          disabled={loading || !value?.trim()}
+          className={`w-[40px] h-[40px] rounded-full justify-center items-center ${
+            loading || !value?.trim() ? "bg-[#ADADAD]" : "bg-[#13E0A0]"
+          }`}
+        >
+          {loading ? (
+            <ActivityIndicator size="small" color="#000E3A" />
+          ) : (
+            <SendIcon width={20} height={20} />
+          )}
+        </TouchableOpacity>
       </View>
-      <TouchableOpacity className="bg-[#13E0A0] w-[36px] h-[36px] justify-center items-center rounded-full">
-        <SendIcon width={16} height={16} />
-      </TouchableOpacity>
     </View>
   );
 };

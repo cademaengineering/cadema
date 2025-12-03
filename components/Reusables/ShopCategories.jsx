@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { TouchableOpacity, View, FlatList } from "react-native";
+import { useState } from "react";
+import { FlatList, TouchableOpacity, View } from "react-native";
 import TextHeader from "./TextHeader";
 
 const categories = [
@@ -10,8 +10,15 @@ const categories = [
   { id: "5", name: "Women's" },
 ];
 
-const ShopCategories = () => {
+const ShopCategories = ({ onCategoryChange, selectedCategory }) => {
   const [activeId, setActiveId] = useState(categories[0].id);
+
+  const handleCategoryPress = (item) => {
+    setActiveId(item.id);
+    if (onCategoryChange) {
+      onCategoryChange(item.name);
+    }
+  };
 
   return (
     <View className="pt-6">
@@ -32,7 +39,7 @@ const ShopCategories = () => {
             className={`px-4 h-[42px] justify-center items-center rounded-[12px] mr-3 ${
               activeId === item.id ? "bg-[#13E0A0]" : "bg-[#F2F2F2]"
             }`}
-            onPress={() => setActiveId(item.id)}
+            onPress={() => handleCategoryPress(item)}
           >
             <TextHeader
               content={item.name}
